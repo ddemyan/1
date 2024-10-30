@@ -4,7 +4,7 @@ import pandas as pd
 import PySimpleGUI as sg
 from binance.client import Client
 from binance import ThreadedWebsocketManager
-
+pd.options.mode.copy_on_write = True
 client = Client(key.api_key, key.api_secret, testnet=True)
 df,d = pd.DataFrame(columns=['time', 'open', 'high', 'low', 'close', 'volume', 'num']), []
 def Run():
