@@ -43,7 +43,7 @@ def Di(msg, hours=3):
             df.loc[y] = [event_time, float(d[y]['k']['o']), float(d[y]['k']['h']),
                          float(d[y]['k']['l']), float(d[y]['k']['c']),
                          float(d[y]['k']['v']), int(d[y]['k']['n'])         ]
-        window['-TABLE2-'].update(values=df.values.tolist())
+        window.write_event_value('-UPDATE_TABLE-', df.values.tolist())
         condition_eval = eval(Dict_query[condition])
         if condition_eval.any():
             Print(df.iloc[-1])
@@ -177,6 +177,9 @@ while True:
     try:
         if event == 'СИГНАЛЫ':
             threading.Thread(target=Run).start()
+        if event == '-UPDATE_TABLE-':
+            window['-TABLE2-'].update(values=values)
+
         if event in dictL.keys():
             dictL[event]()
         if event == sg.WIN_CLOSED or event == 'Exit':
