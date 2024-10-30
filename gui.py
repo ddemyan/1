@@ -54,7 +54,7 @@ layout = [
   key='-TABLE1-', enable_events=True, expand_x=True)],
 
  [sg.Combo (orderId, key='-id-', s=10, readonly=False),
-  sg.Button('Cancel'), sg.Button('Delete')],
+  sg.Button('Cancel'), sg.Button('Cancel_all')],
  [sg.Table (values=[], headings=['time', 'open', 'high', 'low', 'close', 'volume', 'num'],
   col_widths = [20, 10, 10, 10, 10, 10, 10], num_rows=5, justification='center',
   key='-TABLE2-', enable_events=True, auto_size_columns=False, expand_x=True)],
