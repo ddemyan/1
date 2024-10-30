@@ -38,7 +38,7 @@ layout = [
  c4, sg.VerticalSeparator(), c5, sg.VerticalSeparator(), c6, sg.VerticalSeparator(),c7]],
  [sg.Input(key='-TOTAL_DIFF-', s=10, readonly=True), sg.Button ('ВСЕ ОРДЕРА'), sg.Button ('ОТКРЫТЫЕ ОРДЕРА'),
   sg.Button ('СИГНАЛЫ'),sg.Combo (list_d, key='-ld-', default_value='bull_up_low',readonly=False)],
- [sg.Input('13/01/2024 00:00:00',key='-START_DATE-',s=20),sg.Input('23/01/2024 00:00:00',key='-END_DATE-',s=20)],
+ [sg.Input('13/10/2024 00:00:00',key='-START_DATE-',s=20),sg.Input('23/10/2024 00:00:00',key='-END_DATE-',s=20)],
  [sg.Table (values=[],
   headings=['price_diff','orderId','symbol','price','side','origQty','status','type','time'],
   col_widths = [20, 10, 10, 10, 10, 10, 10], num_rows=5, auto_size_columns=False, justification='center',
