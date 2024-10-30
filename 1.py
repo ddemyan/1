@@ -38,7 +38,7 @@ def Go():
     asset = values['-lc-']
     deptH = client.get_order_book(symbol=symbol)
     best_buy, best_sell = deptH['bids'][3][0], deptH['asks'][3][0]
-    parts = int(values['-LB1-'])  # количество частей на которые будет разбит ордер
+    parts = int(values['-LB1-'])  # количество частей на которые будет р��збит ордер
     order_type = values['-LB2-']  # тип ордера, например, скользящий стоплосс
     if values['-BUY-']:
         q = float(values['-LB-']) * float(client.get_asset_balance(asset=asset)["free"]) / parts
@@ -152,7 +152,7 @@ while True:
     event, values = window.read()
     try:
         if event == 'СИГНАЛЫ':
-            threading.Thread(target=Run, daemon=True).start()
+            threading.Thread(target=Run).start()
         if event == 'Go': Go()
         if event == 'Bill': Bill()
         if event == 'ВСЕ ОРДЕРА': display_all_orders()
