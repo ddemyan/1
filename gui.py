@@ -16,6 +16,15 @@ list_doit=['client.get_account()','client.get_asset_balance(asset="BTC")',
            'client.get_my_trades(symbol="BNBBTC")']
 list_d=['Close и Num больше средней на дельту', 'Close и Num меньше средней на 2-дельта',
  'bear_up_high', 'bear_up_low', 'bear_', 'bull_up_high', 'bull_up_low', 'bull_']
+Dict_query = {
+    'Close и Num больше средней на дельту': '(df.close / df.close.rolling(window=ma).mean() > delta_ma) & (df.num / df.num.rolling(window=ma).mean() > delta_num)',
+    'Close и Num меньше средней на 2-дельта': '(df.close / df.close.rolling(window=ma).mean() < abs(2-delta_ma)) & (df.num / df.num.rolling(window=ma).mean() > delta_num)',
+    'bear_up_high': '(df.high.shift(2) < df.high.shift(3)) & (df.high.shift(3) < df.high.shift(4))',
+    'bear_up_low': '(df.low.shift(2) < df.low.shift(3)) & (df.low.shift(3) < df.low.shift(4))',
+    'bear_': '(df.high > df.high.shift(1)) & (df.low > df.low.shift(1)) & (df.high.shift(1) > df.high.shift(2))',
+    'bull_up_high': '(df.high.shift(2) > df.high.shift(3)) & (df.high.shift(3) > df.high.shift(4))',
+    'bull_up_low': '(df.low.shift(2) > df.low.shift(3)) & (df.low.shift(3) > df.low.shift(4))',
+    'bull_': '(df.high < df.high.shift(1)) & (df.low < df.low.shift(1)) & (df.high.shift(1) < df.high.shift(2))'}
 # Определение макета интерфейса
 c1 = sg.Column ([[sg.Button('Go')]])
 c2 = sg.Column ([[ sg.Radio ('BUY', group_id=1, default=True, enable_events=True,
