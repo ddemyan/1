@@ -3,30 +3,15 @@ from datetime import datetime
 import pandas as pd
 import PySimpleGUI as sg
 from binance.client import Client
-
 from binance import ThreadedWebsocketManager
-pd.options.display.expand_frame_repr = False
-pd.set_option('display.max_columns', None)
-pd.set_option('display.max_colwidth', None)
-pd.set_option('display.max_rows', None)
+
 client = Client(key.api_key, key.api_secret, testnet=True)
 df,d = pd.DataFrame(columns=['time', 'open', 'high', 'low', 'close', 'volume', 'num']), []
-Dict_query = {
-    'Close и Num больше средней на дельту': '(df.close / df.close.rolling(window=ma).mean() > delta_ma) & (df.num / df.num.rolling(window=ma).mean() > delta_num)',
-    'Close и Num меньше средней на 2-дельта': '(df.close / df.close.rolling(window=ma).mean() < abs(2-delta_ma)) & (df.num / df.num.rolling(window=ma).mean() > delta_num)',
-    'bear_up_high': '(df.high.shift(2) < df.high.shift(3)) & (df.high.shift(3) < df.high.shift(4))',
-    'bear_up_low': '(df.low.shift(2) < df.low.shift(3)) & (df.low.shift(3) < df.low.shift(4))',
-    'bear_': '(df.high > df.high.shift(1)) & (df.low > df.low.shift(1)) & (df.high.shift(1) > df.high.shift(2))',
-    'bull_up_high': '(df.high.shift(2) > df.high.shift(3)) & (df.high.shift(3) > df.high.shift(4))',
-    'bull_up_low': '(df.low.shift(2) > df.low.shift(3)) & (df.low.shift(3) > df.low.shift(4))',
-    'bull_': '(df.high < df.high.shift(1)) & (df.low < df.low.shift(1)) & (df.high.shift(1) < df.high.shift(2))'
-}
 def Run():
     twm = ThreadedWebsocketManager(api_key=key.api_key, api_secret=key.api_secret)
     twm.start()
     twm.start_kline_socket(symbol=f"{values['-lc-']}USDT", callback=Di)
     twm.join()
-
 def Di(msg, hours=3):
     #print(msg)  # вывод сообщения для отладки
     condition=values['-ld-']
@@ -43,8 +28,9 @@ def Di(msg, hours=3):
             df.loc[y] = [event_time, float(d[y]['k']['o']), float(d[y]['k']['h']),
                          float(d[y]['k']['l']), float(d[y]['k']['c']),
                          float(d[y]['k']['v']), int(d[y]['k']['n'])         ]
-        window.write_event_value('-UPDATE_TABLE-', df.values.tolist())
-        condition_eval = eval(Dict_query[condition])
+        #window.write_event_value('-UPDATE_TABLE-', df.values.tolist())
+        window['-TABLE2-'].update(values=df.values.tolist())
+        condition_eval = eval(gui.Dict_query[condition])
         if condition_eval.any():
             Print(df.iloc[-1])
 def Go():
@@ -117,7 +103,7 @@ def display_all_orders():
     filtered_orders.loc[:, 'price_diff'] = filtered_orders.apply(
     lambda row: current_price - float(row['price']) if row['side'] == 'BUY' else float(row['price']) - current_price, axis=1)
     # Округляем значения в колонке 'price_diff' до двух знаков после запятой
-    filtered_orders['price_diff'] = filtered_orders['price_diff'].round(2)
+    filtered_orders[:,'price_diff'] = filtered_orders['price_diff'].round(2)
     # Перемещаем колонку 'price_diff' на первое место
     filtered_orders.insert(0, 'price_diff', filtered_orders.pop('price_diff'))
     # Вычисляем итоговую сумму по колонке 'price_diff'
@@ -127,7 +113,6 @@ def display_all_orders():
     window['-TOTAL_DIFF-'].update(total_price_diff)
 def Print(*x):
     window['-ML-'].print('\n', x, sep='')
-
 def delete_order():
     if values['-id-']:
         symbol, order_id = values['-id-']
@@ -162,26 +147,20 @@ def round_quantity(symbol, quantity):
     # Округляем количество до допустимого числа знаков после запятой
     precision = int(round(-math.log(step_size, 10), 0))
     return round(quantity, precision)
-dictL = {
-'Bill': lambda: Bill(),
-'ВСЕ ОРДЕРА': lambda: display_all_orders(),
-'ОТКРЫТЫЕ ОРДЕРА': lambda: display_open_orders(),
-'Go': lambda: Go(),
-'Delete': lambda: delete_order(),
-'Do_it': lambda: Print(eval(values['-LIST_DOIT-'])),
-'Save':  lambda: Save_txt(values['-ML-']),
-'Clear': lambda: window['-ML-'].update('')}
 window = gui.create_window()
 while True:
     event, values = window.read()
     try:
         if event == 'СИГНАЛЫ':
-            threading.Thread(target=Run).start()
-        if event == '-UPDATE_TABLE-':
-            window['-TABLE2-'].update(values=values)
-
-        if event in dictL.keys():
-            dictL[event]()
+            threading.Thread(target=Run, daemon=True).start()
+        if event == 'Go': Go()
+        if event == 'Bill': Bill()
+        if event == 'ВСЕ ОРДЕРА': display_all_orders()
+        if event == 'ОТКРЫТЫЕ ОРДЕРА': display_open_orders()
+        if event == 'Delete': delete_order()
+        if event == 'Do_it': Print(eval(values['-LIST_DOIT-']))
+        if event == 'Save': Save_txt(values['-ML-'])
+        if event == 'Clear': window['-ML-'].update('')
         if event == sg.WIN_CLOSED or event == 'Exit':
             break
     except Exception as e:
