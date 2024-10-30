@@ -28,17 +28,16 @@ def Di(msg, hours=3):
             df.loc[y] = [event_time, float(d[y]['k']['o']), float(d[y]['k']['h']),
                          float(d[y]['k']['l']), float(d[y]['k']['c']),
                          float(d[y]['k']['v']), int(d[y]['k']['n'])         ]
-        #window.write_event_value('-UPDATE_TABLE-', df.values.tolist())
-        window['-TABLE2-'].update(values=df.values.tolist())
-        condition_eval = eval(gui.Dict_query[condition])
+        condition_eval = eval(gui.Dict_query[values['-ld-']])
         if condition_eval.any():
-            Print(df.iloc[-1])
+            window.write_event_value('-PRINT-', df.iloc[-1])
+        window.write_event_value('-UPDATE_TABLE-', df.values.tolist())
 def Go():
     symbol = f"{values['-lc-']}USDT"
     asset = values['-lc-']
     deptH = client.get_order_book(symbol=symbol)
     best_buy, best_sell = deptH['bids'][3][0], deptH['asks'][3][0]
-    parts = int(values['-LB1-'])  # количество частей на которые будет р��збит ордер
+    parts = int(values['-LB1-'])  # количество частей на которые будет разбит ордер
     order_type = values['-LB2-']  # тип ордера, например, скользящий стоплосс
     if values['-BUY-']:
         q = float(values['-LB-']) * float(client.get_asset_balance(asset=asset)["free"]) / parts
@@ -72,7 +71,7 @@ def Bill():
     btc_change = calculate_percentage_change(initial_btc_balance, btc_balance)
     eth_change = calculate_percentage_change(initial_eth_balance, eth_balance)
     usdt_change = calculate_percentage_change(initial_usdt_balance, usdt_balance)
-    # Получение последних цен на активы
+    # Получение последних цен на ��������ктивы
     btc_price = float(client.get_recent_trades(symbol='BTCUSDT')[-1]['price'])
     eth_price = float(client.get_recent_trades(symbol='ETHUSDT')[-1]['price'])
     # Вычисление общей стоимости активов
@@ -103,7 +102,7 @@ def display_all_orders():
     filtered_orders.loc[:, 'price_diff'] = filtered_orders.apply(
     lambda row: current_price - float(row['price']) if row['side'] == 'BUY' else float(row['price']) - current_price, axis=1)
     # Округляем значения в колонке 'price_diff' до двух знаков после запятой
-    filtered_orders[:,'price_diff'] = filtered_orders['price_diff'].round(2)
+    filtered_orders.loc[:,'price_diff'] = filtered_orders['price_diff'].round(2)
     # Перемещаем колонку 'price_diff' на первое место
     filtered_orders.insert(0, 'price_diff', filtered_orders.pop('price_diff'))
     # Вычисляем итоговую сумму по колонке 'price_diff'
@@ -113,10 +112,15 @@ def display_all_orders():
     window['-TOTAL_DIFF-'].update(total_price_diff)
 def Print(*x):
     window['-ML-'].print('\n', x, sep='')
-def delete_order():
+def Cancel_order():
     if values['-id-']:
         symbol, order_id = values['-id-']
         Print(client.cancel_order(symbol=symbol, orderId=order_id))
+def Cancel_all_orders():#del_all_order():
+    if values['-id-']:
+        symbol, order_id = values['-id-']
+        for b in order_id:
+            Print(client.cancel_order(symbol=symbol, orderId=b))
 def get_depth():
     x = client.get_order_book(symbol=f"{values['-lc-']}USDT")
     window['-ML-'].print(x)
@@ -151,13 +155,18 @@ window = gui.create_window()
 while True:
     event, values = window.read()
     try:
+        if event == '-UPDATE_TABLE-':
+            window['-TABLE2-'].update(values=df.values.tolist())
+        if event == '-PRINT-':
+            Print(values)
         if event == 'СИГНАЛЫ':
             threading.Thread(target=Run).start()
         if event == 'Go': Go()
         if event == 'Bill': Bill()
         if event == 'ВСЕ ОРДЕРА': display_all_orders()
         if event == 'ОТКРЫТЫЕ ОРДЕРА': display_open_orders()
-        if event == 'Delete': delete_order()
+        if event == 'Cancel': Cancel_order()
+        if event == 'Cancel_all': Cancel_all_orders()
         if event == 'Do_it': Print(eval(values['-LIST_DOIT-']))
         if event == 'Save': Save_txt(values['-ML-'])
         if event == 'Clear': window['-ML-'].update('')
